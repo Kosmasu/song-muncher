@@ -1,10 +1,12 @@
 {
-  "name": "1_introtowebservice",
+  "name": "song-muncher",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "gas": "tsc && npx nodemon built"
   },
   "keywords": [],
   "author": "",
@@ -12,6 +14,7 @@
   "dependencies": {
     "axios": "^1.3.4",
     "bcrypt": "^5.1.0",
+    "dotenv": "^16.0.3",
     "express": "^4.18.2",
     "fs": "^0.0.1-security",
     "joi": "^17.8.3",
@@ -19,7 +22,8 @@
     "mysql2": "^3.1.2",
     "nodemon": "^2.0.20",
     "sequelize": "^6.31.0",
-    "sqlite3": "^5.1.4"
+    "sqlite3": "^5.1.4",
+    "typescript": "^5.0.4"
   },
   "devDependencies": {
     "sequelize-cli": "^6.6.0"

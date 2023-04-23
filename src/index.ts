@@ -7,11 +7,34 @@
   npx sequelize-cli db:migrate
 */
 
-const { login } = require("./src/controllers/AuthController")
+interface User {
+  name: string,
+  socialSecurityNumber: number,
+  orangTua: User | null,
+}
+
+const kevin: User = {
+  name: "Kevin",
+  socialSecurityNumber: 123,
+  orangTua: {
+    name: "Ferdinandus",
+    socialSecurityNumber: 789,
+    orangTua: null
+  }
+}
 
 const express = require("express");
+const { hey } = require("./helper/coba");
 const app = express();
 app.use(express.urlencoded({ extended: true }));
+
+app.get("/api", async (req, res) => {
+  return res.status(200).send({
+    message: "test",
+    kevin,
+    hey,
+  })
+})
 
 const port = 3000;
 app.listen(port, function () {
