@@ -7,6 +7,8 @@
   npx sequelize-cli db:migrate
 */
 
+import { expression } from "joi";
+
 interface User {
   name: string,
   socialSecurityNumber: number,
@@ -23,8 +25,12 @@ const kevin: User = {
   }
 }
 
-const express = require("express");
-const { hey } = require("./helper/coba");
+// const express = require("express");
+// const { hey } = require("./helper/coba");
+
+import express from "express";
+import { hey } from "./helper/coba.js";
+
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 
