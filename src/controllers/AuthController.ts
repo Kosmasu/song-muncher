@@ -34,8 +34,19 @@ export const login = async (req: Request, res: Response) => {
 export const callbackLogin = async (req: Request, res: Response) => {
   dotenv.config();
   const { query: { code, error, state, redirect_uri } } = req;
+  try {
+    await Joi.object({
+      redirect_uri: Joi.string().required().uri().label("redirect URI"),
+      code: Joi.string().optional(),
+      error: Joi.string().optional(),
+      state: Joi.string().required(),
+    }).xor("code", "error").validateAsync(req.query);
+  }
+  catch (error) {
+    return res.status(400).send({ message: String(error) });
+  }
   if (error) {
-    return res.status(400).send({ message: "gagal login!", code, error, state });
+    return res.status(400).send({ message: "Gagal Login!", code, error, state });
   }
   else if (code) {
     const client_id = process.env.CLIENT_ID!;
