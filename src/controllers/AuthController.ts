@@ -42,5 +42,4 @@ export const callbackLogin = async (req: Request, res: Response) => {
     });
     return res.status(200).send(response.data);
   }
-  return res.send("noob");
 }
