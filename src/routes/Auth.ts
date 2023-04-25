@@ -1,8 +1,8 @@
-// const express = require("express");
-// const router = express.Router();
+import express from "express";
+import { login, callbackLogin } from "../controllers/AuthController.js";
+const router = express.Router();
 
-// const { login, } = require("../controllers/AuthController");
+router.get("/login", login);
+router.get("/callback-login", callbackLogin);
 
-// router.post("/login", login);
-
-// module.exports = router;
+export default router;

@@ -7,7 +7,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
-    "gas": "tsc && npx nodemon built"
+    "gas": "tsc && npx nodemon built",
+    "dev": "npx nodemon ./src/index.ts"
   },
   "keywords": [],
   "author": "",
