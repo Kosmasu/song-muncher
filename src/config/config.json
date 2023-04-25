@@ -2,7 +2,7 @@
   "development": {
     "username": "root",
     "password": null,
-    "database": "soainf20222m9",
+    "database": "song_muncher",
     "host": "127.0.0.1",
     "dialect": "mysql"
   },
