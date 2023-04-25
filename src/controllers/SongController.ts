@@ -1,5 +1,5 @@
 import { Request, Response } from "express";
-import { fetchSong } from "../services/Song.js";
+import { fetchSong } from "../services/SongRoute.js";
 
 export const getSong = async (req: Request, res: Response) => {
   const { params: { song_id } } = req;

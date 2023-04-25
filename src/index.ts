@@ -15,8 +15,8 @@ const kevin: User = {
 }
 
 import express from "express";
-import authRoute from "./routes/Auth.js";
-import songRoute from "./routes/Song.js";
+import authRoute from "./routes/AuthRoute.js";
+import songRoute from "./routes/SongRoute.js";
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
