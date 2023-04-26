@@ -1,7 +1,7 @@
 import * as dotenv from "dotenv";
 import { generateRandomString } from "../helper/index.js";
 import { Request, Response } from "express";
-import { fetchToken } from "../services/AuthRoute.js";
+import { fetchToken } from "../services/AuthService.js";
 import Joi from "joi";
 
 export const login = async (req: Request, res: Response) => {
