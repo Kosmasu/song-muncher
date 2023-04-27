@@ -1,5 +1,8 @@
 import { Sequelize } from "sequelize-typescript";
 
+import dotenv from "dotenv";
+dotenv.config();
+
 const config = {
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
@@ -11,7 +14,7 @@ const config = {
 const sequelize = new Sequelize(
   config.database!,
   config.username!,
-  config.password ?? undefined,
+  config.password,
   {
     host: config.host,
     dialect: "mysql",

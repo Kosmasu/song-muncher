@@ -33,5 +33,5 @@ export default class RatingReview extends Model {
   updated_at!: Date;
 
   @DeletedAt
-  deletedAt?: Date;
+  deleted_at?: Date;
 }

@@ -4,6 +4,7 @@ import {
   Column,
   Model,
   DataType,
+  AllowNull,
   CreatedAt,
   UpdatedAt,
   DeletedAt,
@@ -23,7 +24,9 @@ export default class Comment extends Model {
   @Column(DataType.TEXT)
   comment!: string;
 
-  @Column
+  @Column({
+    allowNull: true,
+  })
   parent_id!: bigint;
 
   @CreatedAt
@@ -33,5 +36,5 @@ export default class Comment extends Model {
   updated_at!: Date;
 
   @DeletedAt
-  deletedAt?: Date;
+  deleted_at?: Date;
 }

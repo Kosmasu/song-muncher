@@ -23,7 +23,7 @@ module.exports = {
       },
       parent_id: {
         type: Sequelize.BIGINT,
-        allowNull: false,
+        allowNull: true,
       },
       created_at: {
         type: Sequelize.DATE,

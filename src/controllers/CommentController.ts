@@ -1,6 +1,11 @@
 import { Request, Response } from "express";
+import { Comment } from "../models/index.js";
 import Joi from "joi";
-import { getUserID } from "./UserController";
+
+export const getComments = async (req: Request, res: Response) => {
+  const comments = await Comment.findAll();
+  return res.status(200).send({ comments });
+};
 
 export const createComment = async (req: Request, res: Response) => {
   const { song_id, comment }: { song_id: string; comment: string } = req.body;
@@ -12,7 +17,6 @@ export const createComment = async (req: Request, res: Response) => {
   } catch (error) {
     return res.status(400).send({ message: String(error) });
   }
-  const user_id = await getUserID(req.headers.authorization as string);
 };
 
 export const updateComment = async (req: Request, res: Response) => {
