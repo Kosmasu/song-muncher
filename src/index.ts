@@ -14,7 +14,8 @@
 import express, { ErrorRequestHandler, NextFunction, Request, Response } from "express";
 import authRoute from "./routes/AuthRoute.js";
 import songRoute from "./routes/SongRoute.js";
-import commentRoute from "./routes/Comment.js";
+import commentRoute from "./routes/CommentRoute.js";
+import ratingRoute from "./routes/RatingRoute.js";
 import { SpotifyAPIError } from "./exceptions/SpotifyAPIError.js";
 
 const app = express();
@@ -22,6 +23,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/api/auth", authRoute);
 app.use("/api/song", songRoute);
+app.use("/api/rating", ratingRoute);
 app.use("/api/comment", commentRoute);
 
 //Error handling

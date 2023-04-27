@@ -1,17 +1,10 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import Joi from "joi";
-import { getUserID } from "./UserController";
+import { getUserID } from "./UserController.js";
+import { isSongExist } from "./SongController.js";
+import RatingReview from "../models/ratingreview.js";
 
-/**
- * TODO:
- * 1. pengecekan authorization bearer token itu valid atau tidak
- *  dan berikan kembalian response yang sesuai.
- * 2. pengecekan kalau sudah lewat rate limit
- *  dan berikan kembalian response yang sesuai.
- */
-
-
-export const createRating = async (req: Request, res: Response) => {
+export const createRating = async (req: Request, res: Response, next: NextFunction) => {
   const { song_id, rating, review }:
     { song_id: string, rating: number, review: string } = req.body;
   try {
@@ -19,20 +12,28 @@ export const createRating = async (req: Request, res: Response) => {
       song_id: Joi.string().required().label("song id"),
       rating: Joi.number().positive().max(5).required().label("rating"),
       review: Joi.string().required().label("review"),
-    }).validateAsync(req.query);
+    }).validateAsync(req.body);
   }
   catch (error) {
     return res.status(400).send({ message: String(error) });
   }
-  const user_id = await getUserID(req.headers.authorization as string);
-  /**
-   * TODO
-   * 1. pengecekan song_id exists
-   * 2. create rating (201)
-   */
+  try {
+    const user_id = await getUserID(req.headers.authorization as string);
+    await isSongExist(song_id, req.headers.authorization as string);
+    const ratingReview = await RatingReview.create({
+      song_id, rating, review, user_id
+    });
+    return res.status(200).send({
+      message: "Successfully created a new rating review!",
+      rating_review: ratingReview,
+    });
+  }
+  catch (error) {
+    next(error);
+  }
 }
 
-export const updateRating = async (req: Request, res: Response) => {
+export const updateRating = async (req: Request, res: Response, next: NextFunction) => {
   const { rating, review }:
     { rating: number, review: string } = req.body;
   const { rating_id } = req.params;
@@ -40,23 +41,47 @@ export const updateRating = async (req: Request, res: Response) => {
     await Joi.object({
       rating: Joi.number().positive().max(5).required().label("rating"),
       review: Joi.string().required().label("review"),
-    }).validateAsync(req.query);
+    }).validateAsync(req.body);
   }
   catch (error) {
     return res.status(400).send({ message: String(error) });
   }
-  /**
-   * TODO:
-   * 1. pengecekan rating exist
-   * 2. update rating (201)
-   */
+  try {
+    const ratingReview = await RatingReview.findByPk(rating_id);
+    if (!ratingReview) {
+      return res.status(404).send({
+        message: "Rating Review is not found!"
+      })
+    }
+    ratingReview.rating = rating;
+    ratingReview.review = review;
+    await ratingReview.save();
+    return res.status(201).send({
+      message: `Rating Review is successfully updated!`,
+      rating_review: ratingReview,
+    })
+  }
+  catch (error) {
+    next(error);
+  }
 }
 
-export const deleteRating = async (req: Request, res: Response) => {
+export const deleteRating = async (req: Request, res: Response, next: NextFunction) => {
   const { rating_id } = req.params;
-  /**
-   * TODO:
-   * 1. pengecekan rating exist
-   * 2. delete rating (201)
-   */
+  try {
+    const ratingReview = await RatingReview.findByPk(rating_id);
+    if (!ratingReview) {
+      return res.status(404).send({
+        message: "Rating Review is not found!"
+      })
+    }
+    await ratingReview.destroy();
+    return res.status(201).send({
+      message: `Rating Review is successfully deleted!`,
+      rating_review: ratingReview,
+    })
+  }
+  catch (error) {
+    next(error);
+  }
 }

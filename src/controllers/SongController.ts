@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { fetchSong } from "../services/SongService.js";
+import { SpotifyAPIError } from "../exceptions/SpotifyAPIError.js";
 
 export const getSong = async (req: Request, res: Response, next: NextFunction) => {
   const { params: { song_id } } = req;
@@ -21,8 +22,8 @@ export const getSong = async (req: Request, res: Response, next: NextFunction) =
  */
 export const isSongExist = async (song_id: string, authorization: string): Promise<boolean> => {
   const response = await fetchSong(song_id, authorization);
-  if (response.status == 200) {
-    return true;
+  if (response.status != 200) {
+    return Promise.reject(response);
   }
-  return false;
+  return true;
 }
