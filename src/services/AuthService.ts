@@ -1,6 +1,6 @@
 import axios, { AxiosResponse } from "axios";
 
-export const fetchToken = (
+export const fetchToken = async (
   client_id: string,
   client_secret: string,
   redirect_uri: string,

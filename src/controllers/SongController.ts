@@ -1,10 +1,16 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { fetchSong } from "../services/SongService.js";
 
-export const getSong = async (req: Request, res: Response) => {
+export const getSong = async (req: Request, res: Response, next: NextFunction) => {
   const { params: { song_id } } = req;
-  const response = await fetchSong(song_id, req.header("Authorization") as string);
-  return res.status(200).send(response.data);
+  try {
+    const response = await fetchSong(song_id, req.header("Authorization") as string);
+    console.log('response:', response);
+    return res.status(200).send(response.data);
+  }
+  catch (error) {
+    next(error);
+  }
 }
 
 /**

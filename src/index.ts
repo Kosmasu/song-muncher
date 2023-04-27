@@ -11,42 +11,33 @@
   npx sequelize-cli db:seed:undo:all
 */
 
-import { expression } from "joi";
-
-interface User {
-  name: string;
-  socialSecurityNumber: number;
-  orangTua: User | null;
-}
-
-const kevin: User = {
-  name: "Kevin",
-  socialSecurityNumber: 123,
-  orangTua: {
-    name: "Ferdinandus",
-    socialSecurityNumber: 789,
-    orangTua: null,
-  },
-};
-
-import express from "express";
+import express, { ErrorRequestHandler, NextFunction, Request, Response } from "express";
 import authRoute from "./routes/AuthRoute.js";
 import songRoute from "./routes/SongRoute.js";
 import commentRoute from "./routes/Comment.js";
+import { SpotifyAPIError } from "./exceptions/SpotifyAPIError.js";
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 
-app.get("/api", async (req, res) => {
-  return res.status(200).send({
-    message: "test",
-    kevin,
-  });
-});
-
 app.use("/api/auth", authRoute);
 app.use("/api/song", songRoute);
 app.use("/api/comment", commentRoute);
+
+//Error handling
+app.use((err: ErrorRequestHandler, req: Request, res: Response, next: NextFunction) => {
+  console.error(err);
+  if (err instanceof SpotifyAPIError) {
+    return res.status(err.status_code).send({
+      status: err.status_code,
+      message: err.message,
+    })
+  }
+  return res.send(500).send({
+    status: 500,
+    message: "Something went wrong!",
+  });
+});
 
 const port = 3000;
 app.listen(port, function () {
