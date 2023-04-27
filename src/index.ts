@@ -32,6 +32,7 @@ const kevin: User = {
 import express from "express";
 import authRoute from "./routes/AuthRoute.js";
 import songRoute from "./routes/SongRoute.js";
+import commentRoute from "./routes/Comment.js";
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
@@ -45,6 +46,7 @@ app.get("/api", async (req, res) => {
 
 app.use("/api/auth", authRoute);
 app.use("/api/song", songRoute);
+app.use("/api/comment", commentRoute);
 
 const port = 3000;
 app.listen(port, function () {
