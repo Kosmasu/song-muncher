@@ -18,7 +18,7 @@ export default class RatingReview extends Model {
   song_id!: string;
 
   @Column
-  spotify_id!: string;
+  user_id!: string;
 
   @Column(DataType.FLOAT)
   rating!: number;

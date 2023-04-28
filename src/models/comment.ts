@@ -19,7 +19,7 @@ export default class Comment extends Model {
   song_id!: string;
 
   @Column
-  spotify_id!: string;
+  user_id!: string;
 
   @Column(DataType.TEXT)
   comment!: string;
