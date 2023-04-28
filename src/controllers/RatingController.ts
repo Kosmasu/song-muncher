@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from "express";
 import Joi from "joi";
 import { getUserID } from "./UserController.js";
 import { isSongExist } from "./SongController.js";
-import RatingReview from "../models/ratingreview.js";
+import { RatingReview } from "../models/index.js";
 
 export const createRating = async (req: Request, res: Response, next: NextFunction) => {
   const { song_id, rating, review }:
@@ -15,11 +15,20 @@ export const createRating = async (req: Request, res: Response, next: NextFuncti
     }).validateAsync(req.body);
   }
   catch (error) {
-    return res.status(400).send({ message: String(error) });
+    return res.status(400).send({
+      status: 400,
+      message: String(error)
+    });
   }
   try {
     const user_id = await getUserID(req.headers.authorization as string);
     await isSongExist(song_id, req.headers.authorization as string);
+    if (await hasRated(user_id, song_id)) {
+      return res.status(400).send({
+        status: 400,
+        message: "User has already rated this song!",
+      })
+    }
     const ratingReview = await RatingReview.create({
       song_id, rating, review, user_id
     });
@@ -44,7 +53,10 @@ export const updateRating = async (req: Request, res: Response, next: NextFuncti
     }).validateAsync(req.body);
   }
   catch (error) {
-    return res.status(400).send({ message: String(error) });
+    return res.status(400).send({
+      status: 400,
+      message: String(error)
+    });
   }
   try {
     const ratingReview = await RatingReview.findByPk(rating_id);
@@ -70,6 +82,8 @@ export const deleteRating = async (req: Request, res: Response, next: NextFuncti
   const { rating_id } = req.params;
   try {
     const ratingReview = await RatingReview.findByPk(rating_id);
+    console.log('rating_id:', rating_id);
+    console.log('ratingReview:', ratingReview);
     if (!ratingReview) {
       return res.status(404).send({
         message: "Rating Review is not found!"
@@ -84,4 +98,14 @@ export const deleteRating = async (req: Request, res: Response, next: NextFuncti
   catch (error) {
     next(error);
   }
+}
+
+export const hasRated = async (user_id: string, song_id: string) => {
+  const ratingReview = await RatingReview.findOne({
+    where: {
+      song_id: song_id,
+      user_id: user_id,
+    }
+  });
+  return ratingReview;
 }
