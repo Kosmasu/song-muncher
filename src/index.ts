@@ -35,7 +35,7 @@ app.use((err: ErrorRequestHandler, req: Request, res: Response, next: NextFuncti
       message: err.message,
     })
   }
-  return res.send(500).send({
+  return res.status(500).send({
     status: 500,
     message: "Something went wrong!",
   });
