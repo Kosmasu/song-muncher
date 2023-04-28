@@ -23,8 +23,8 @@ export const createRating = async (req: Request, res: Response, next: NextFuncti
     const ratingReview = await RatingReview.create({
       song_id, rating, review, user_id
     });
-    return res.status(200).send({
-      message: "Successfully created a new rating review!",
+    return res.status(201).send({
+      message: "Successfully created a new rating and review!",
       rating_review: ratingReview,
     });
   }
@@ -50,14 +50,14 @@ export const updateRating = async (req: Request, res: Response, next: NextFuncti
     const ratingReview = await RatingReview.findByPk(rating_id);
     if (!ratingReview) {
       return res.status(404).send({
-        message: "Rating Review is not found!"
+        message: "Rating and review is not found!"
       })
     }
     ratingReview.rating = rating;
     ratingReview.review = review;
     await ratingReview.save();
     return res.status(201).send({
-      message: `Rating Review is successfully updated!`,
+      message: `Rating and review is successfully updated!`,
       rating_review: ratingReview,
     })
   }
