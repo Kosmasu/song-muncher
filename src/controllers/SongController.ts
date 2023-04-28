@@ -6,7 +6,6 @@ export const getSong = async (req: Request, res: Response, next: NextFunction) =
   const { params: { song_id } } = req;
   try {
     const response = await fetchSong(song_id, req.header("Authorization") as string);
-    console.log('response:', response);
     return res.status(200).send(response.data);
   }
   catch (error) {

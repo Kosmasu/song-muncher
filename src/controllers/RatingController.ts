@@ -82,8 +82,6 @@ export const deleteRating = async (req: Request, res: Response, next: NextFuncti
   const { rating_id } = req.params;
   try {
     const ratingReview = await RatingReview.findByPk(rating_id);
-    console.log('rating_id:', rating_id);
-    console.log('ratingReview:', ratingReview);
     if (!ratingReview) {
       return res.status(404).send({
         message: "Rating Review is not found!"
