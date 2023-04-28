@@ -8,7 +8,9 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "tsc",
     "gas": "tsc && npx nodemon built",
-    "dev": "npx nodemon ./src/index.ts"
+    "dev": "npx nodemon ./src/index.ts",
+    "migrate": "npx sequelize-cli db:migrate",
+    "undo-migration": "npx sequelize-cli db:migrate:undo:all"
   },
   "keywords": [],
   "author": "",
