@@ -13,7 +13,13 @@ const axiosSpotify: AxiosInstance = axios.create({
 axiosSpotify.interceptors.response.use(response => {
   return response;
 }, (error: AxiosError) => {
-  throw new SpotifyAPIError((error.response?.data as any).error.status, (error.response?.data as any).error.message);
+  console.error(error);
+  try {
+    throw new SpotifyAPIError((error.response?.data as any).error.status, (error.response?.data as any).error.message);
+  }
+  catch (error) {
+    throw error;
+  }
   // return Promise.reject(new SpotifyAPIError((error.response?.data as any).error.status, (error.response?.data as any).error.message));
 });
 
