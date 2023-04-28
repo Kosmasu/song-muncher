@@ -10,7 +10,7 @@ import {
 
 @Table
 export default class Developer extends Model {
-  @Column({ primaryKey: true })
+  @Column({ primaryKey: true, autoIncrement: true })
   username!: string;
 
   @Column

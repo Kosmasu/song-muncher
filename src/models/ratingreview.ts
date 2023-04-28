@@ -11,7 +11,7 @@ import {
 
 @Table
 export default class RatingReview extends Model {
-  @Column({ primaryKey: true })
+  @Column({ primaryKey: true, autoIncrement: true })
   id!: bigint;
 
   @Column

@@ -12,7 +12,7 @@ import {
 
 @Table
 export default class Comment extends Model {
-  @Column({ primaryKey: true })
+  @Column({ primaryKey: true, autoIncrement: true })
   id!: bigint;
 
   @Column
