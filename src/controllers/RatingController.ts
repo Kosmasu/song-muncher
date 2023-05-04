@@ -52,7 +52,7 @@ export const updateRating = async (req: Request, res: Response, next: NextFuncti
     ratingReview.rating = rating;
     ratingReview.review = review;
     await ratingReview.save();
-    return res.status(201).send({
+    return res.status(200).send({
       message: `Rating and review is successfully updated!`,
       rating_review: ratingReview,
     })
@@ -72,7 +72,7 @@ export const deleteRating = async (req: Request, res: Response, next: NextFuncti
       })
     }
     await ratingReview.destroy();
-    return res.status(201).send({
+    return res.status(200).send({
       message: `Rating Review is successfully deleted!`,
       rating_review: ratingReview,
     })

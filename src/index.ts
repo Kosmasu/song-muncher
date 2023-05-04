@@ -42,7 +42,7 @@ app.use((err: ErrorRequestHandler, req: Request, res: Response, next: NextFuncti
   }
   if (err instanceof AxiosError) {
     return res.status(err.response?.status as number).send({
-      message: "Something went wrong while fetching datas from Spotify API",
+      message: "Something went wrong while fetching datas",
       data: err.response?.data,
     })
   }
