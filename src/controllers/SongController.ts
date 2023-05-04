@@ -7,10 +7,11 @@ export const getSongs = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { query } = req.query;
+  const { query, type } = req.query;
   try {
     await Joi.object({
       query: Joi.string().required().label("query"),
+      type: Joi.string().optional().label("type"),
     }).validateAsync(req.query);
   } catch (error) {
     return res.status(400).send({ message: String(error) });
@@ -18,8 +19,16 @@ export const getSongs = async (
   try {
     const response = await fetchSongs(
       query?.toString() ?? "",
+      type?.toString() ?? "track",
       req.header("Authorization") as string
     );
+    if (type) {
+      const resArtistSongs = [];
+      for (let i = 0; i < response.data.artists.items.length; i++) {
+        resArtistSongs.push(response.data.artists.items[i].id)
+      }
+      return res.status(200).send(resArtistSongs);
+    }
     return res.status(200).send(response.data.tracks.items);
   } catch (error) {
     next(error);
