@@ -1,14 +1,14 @@
 import { AxiosResponse } from "axios";
 import axiosSpotify from "../axios/spotify.js";
 
-export const fetchSongs = async (query: string, bearer_token:string): Promise<AxiosResponse<any, any>> => {
+export const fetchSongs = async (query: string, type: string, bearer_token:string): Promise<AxiosResponse<any, any>> => {
   return axiosSpotify.get(`/search`, {
     headers: {
       Authorization: bearer_token,
     },
     params: {
-      query: query,
-      type: "track",
+      query,
+      type,
     }
   });
 }
