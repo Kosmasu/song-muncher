@@ -13,14 +13,6 @@ export const createRating = async (req: Request, res: Response, next: NextFuncti
       rating: Joi.number().positive().max(5).required().label("rating"),
       review: Joi.string().required().label("review"),
     }).validateAsync(req.body);
-  }
-  catch (error) {
-    return res.status(400).send({
-      status: 400,
-      message: String(error)
-    });
-  }
-  try {
     const user_id = await getUserID(req.headers.authorization as string);
     await isSongExist(song_id, req.headers.authorization as string);
     if (await hasRated(user_id, song_id)) {
@@ -51,14 +43,6 @@ export const updateRating = async (req: Request, res: Response, next: NextFuncti
       rating: Joi.number().positive().max(5).required().label("rating"),
       review: Joi.string().required().label("review"),
     }).validateAsync(req.body);
-  }
-  catch (error) {
-    return res.status(400).send({
-      status: 400,
-      message: String(error)
-    });
-  }
-  try {
     const ratingReview = await RatingReview.findByPk(rating_id);
     if (!ratingReview) {
       return res.status(404).send({

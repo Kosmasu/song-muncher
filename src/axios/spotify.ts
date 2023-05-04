@@ -14,12 +14,10 @@ axiosSpotify.interceptors.response.use(response => {
   return response;
 }, (error: AxiosError) => {
   console.error(error);
-  try {
+  if ((error.response?.data as any).error.status && (error.response?.data as any).error.message) {
     throw new SpotifyAPIError((error.response?.data as any).error.status, (error.response?.data as any).error.message);
   }
-  catch (error) {
-    throw error;
-  }
+  throw error;
   // return Promise.reject(new SpotifyAPIError((error.response?.data as any).error.status, (error.response?.data as any).error.message));
 });
 
