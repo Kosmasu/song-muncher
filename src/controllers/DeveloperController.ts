@@ -1,10 +1,9 @@
 import * as dotenv from "dotenv";
 import { Request, Response ,NextFunction} from "express";
-import Joi, { ref } from "joi";
+import Joi, { number, ref } from "joi";
 import jwt from "jsonwebtoken"
 import multer from "multer";
 import { Developer,RatingReview,Comment } from "../models/index.js";
-
 
 
 export const devLogin = async (req: Request, res: Response ,next: NextFunction) => {
@@ -25,15 +24,20 @@ export const devLogin = async (req: Request, res: Response ,next: NextFunction) 
         message: "Developer Account Not Found!"
       })
     }
-    
+    if(password != targetDev.password){
+      return res.status(400).send({
+        message: "Password Invalid!"
+      })
+    }
     let token = jwt.sign({
       username:targetDev.username,
       kuota:targetDev.kuota
     },process.env.JWT_KEY!)
     
-    return res.status(201).send({
+    return res.status(200).send({
       message: `Succesful login, Welcome ${targetDev.username}!`,
       username,
+      available_quota:targetDev.kuota,
       token:token
     })
   }
@@ -65,10 +69,66 @@ export const devRegister = async (req: Request, res: Response ,next: NextFunctio
   })
 };
 export const devForgorPassword = async (req: Request, res: Response ,next: NextFunction) => {
-    
+  const {username,email} = req.body;
+  try {
+    await Joi.object({
+      username: Joi.string().required().label("username"),
+      email: Joi.string().required().label("email"),
+    }).validateAsync(req.body);
+  } catch (error) {
+    return res.status(400).send({ message: String(error) });
+  }
+  const dev = await Developer.findOne({
+    where: {
+      username:username,
+      email:email
+    }
+  });
+  if(!dev){
+    return res.status(400).send({ message: "Invalid Credentials!" });
+  }
+  return res.status(200).send({ 
+    message: `Credentials Match, hello ${dev.username}!`,
+    your_password:dev.password
+  });
 };
 export const devTopUp = async (req: Request, res: Response ,next: NextFunction) => {
-    
+  dotenv.config()
+  const {username,amount} = req.body;
+  try{
+    const token = req.header('x-auth-token');
+    if(!token) throw new Error(); 
+    interface JwtPayload {
+      username:string,
+      kuota:number
+    }
+    const userdata = jwt.verify(token!,process.env.JWT_KEY!) as JwtPayload;
+    if(userdata.username != username){
+      return res.status(400).send('Please authenticate')
+    }
+  }catch(err){
+    return res.status(400).send('Unauthorized')
+  }
+  try {
+    await Joi.object({
+      username: Joi.string().required().label("username"),
+      amount: Joi.number().min(5).required().label("amount"),
+    }).validateAsync(req.body);
+  } catch (error) {
+    return res.status(400).send({ message: String(error) });
+  }
+  const dev = await Developer.findByPk(username);
+  if(!dev){
+    return res.status(400).send({ message: "Invalid Credentials!" });
+  }
+  const old:number = dev.kuota;
+  dev.kuota += parseInt(amount);
+  await dev.save();
+
+  return res.status(200).send({
+    message:`Top Up success, ${dev.kuota} remaining quota`,
+    old_value:old
+  })
 };
 export const devBuyInfo = async (req: Request, res: Response ,next: NextFunction) => {
     
