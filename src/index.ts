@@ -11,7 +11,7 @@
   npx sequelize-cli db:seed:undo:all
 */
 
-import express, { ErrorRequestHandler, NextFunction, Request, Response } from "express";
+import express from "express";
 import authRoute from "./routes/AuthRoute.js";
 import songRoute from "./routes/SongRoute.js";
 import commentRoute from "./routes/CommentRoute.js";
