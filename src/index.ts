@@ -31,8 +31,6 @@ app.use("/api/song", songRoute);
 app.use("/api/rating", ratingRoute);
 app.use("/api/comment", commentRoute);
 app.use("/api/developer", developerRoute);
-
-//Error handling
 app.use(GlobalErrorHandler);
 
 const port = 3000;
