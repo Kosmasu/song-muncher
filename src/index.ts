@@ -19,11 +19,15 @@ import developerRoute from "./routes/DeveloperRoute.js"
 import ratingRoute from "./routes/RatingRoute.js";
 import { SpotifyAPIError } from "./exceptions/SpotifyAPIError.js";
 import { AxiosError } from "axios";
-import Joi from "joi";
+import Joi from "joi"
+import cors from "cors"
+import cookieParser from "cookie-parser";
 
 const app = express();
 app.use(express.urlencoded({ extended: true }));
 
+app.use(cors());
+app.use(cookieParser());
 app.use("/api/auth", authRoute);
 app.use("/api/song", songRoute);
 app.use("/api/rating", ratingRoute);

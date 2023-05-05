@@ -4,6 +4,8 @@ import { NextFunction, Request, Response } from "express";
 import { fetchRefreshToken, fetchToken } from "../services/AuthService.js";
 import Joi from "joi";
 
+const stateKey = 'spotify_auth_state';
+
 export const login = async (
   req: Request,
   res: Response,
@@ -25,6 +27,7 @@ export const login = async (
       redirect_uri: redirect_uri as string,
       state: state
     });
+    res.cookie(stateKey, state);
     res.status(200).send({ url: 'https://accounts.spotify.com/authorize?' + queries });
   }
   catch (error) {
@@ -47,6 +50,17 @@ export const callbackLogin = async (
       error: Joi.string().optional(),
       state: Joi.string().required(),
     }).xor("code", "error").validateAsync(req.body);
+    const storedState = req.cookies ? req.cookies[stateKey] : null;
+    console.log('req.cookies:', req.cookies);
+    console.log('storedState:', storedState);
+    console.log('state:', state);
+    if (state === null || state !== storedState) {
+      return res.status(400).send({
+        status: 400,
+        message: "State is invalid!",
+      })
+    }
+    res.clearCookie(stateKey);
     if (error) {
       return res.status(400).send({
         status: 400,
