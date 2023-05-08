@@ -18,6 +18,7 @@ const sequelize = new Sequelize(
   {
     host: config.host,
     dialect: "mysql",
+    timezone: "+07:00",
   }
 );
 
