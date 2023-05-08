@@ -17,9 +17,6 @@ export default class Developer extends Model {
   password!: string;
 
   @Column
-  ktp!: string;
-
-  @Column
   email!: string;
 
   @Column
