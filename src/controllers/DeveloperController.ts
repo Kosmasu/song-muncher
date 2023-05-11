@@ -3,6 +3,7 @@ import { Request, Response ,NextFunction} from "express";
 import Joi, { number, ref } from "joi";
 import jwt from "jsonwebtoken"
 import multer from "multer";
+import bcrypt, { hashSync } from "bcrypt";
 import { Developer,RatingReview,Comment } from "../models/index.js";
 
 
@@ -24,12 +25,12 @@ export const devLogin = async (req: Request, res: Response ,next: NextFunction) 
         message: "Developer Account Not Found!"
       })
     }
-    if(password != targetDev.password){
+    if(!bcrypt.compareSync(password,targetDev.password)){
       return res.status(400).send({
         message: "Password Invalid!"
       })
     }
-    let token = jwt.sign({
+    const token = jwt.sign({
       username:targetDev.username,
       kuota:targetDev.kuota
     },process.env.JWT_KEY!)
@@ -61,7 +62,7 @@ export const devRegister = async (req: Request, res: Response ,next: NextFunctio
   }
   
   const dev = await Developer.create({
-    username,password,ktp:image?.path,email,kuota:0
+    username,password:hashSync(password,10),email,kuota:0
   });
   return res.status(201).send({
     message:`Register success, welcome ${username}!`,
@@ -153,7 +154,10 @@ export const emailExist = async (email: string) => {
   if(dev) throw new Error("Email sudah di gunakan")
   return dev;
 }
-
+// export const verifyPassword = async (pass: string, hashed: string) => {
+//   const result = await bcrypt.compare(pass,hashed);
+//   return result;
+// }
 export const storage = multer.diskStorage({
   destination (req, file, cb) {
       cb(null, 'storage/uploads/images');
