@@ -18,7 +18,7 @@ router.get("/login", devLogin);
 router.post("/register",  upload.single("image"), devRegister);
 router.get("/forget", devForgorPassword);
 router.post("/topup", devTopUp);
-router.get("/info/:song_id", devBuyInfo);
+router.get("/song", devBuyInfo);
 
 
 export default router;

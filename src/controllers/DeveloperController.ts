@@ -4,6 +4,7 @@ import Joi, { number, ref } from "joi";
 import jwt from "jsonwebtoken"
 import multer from "multer";
 import bcrypt, { hashSync } from "bcrypt";
+import { isSongExist } from "./SongController.js";
 import { Developer,RatingReview,Comment } from "../models/index.js";
 
 
@@ -127,12 +128,69 @@ export const devTopUp = async (req: Request, res: Response ,next: NextFunction) 
   await dev.save();
 
   return res.status(200).send({
-    message:`Top Up success, ${dev.kuota} remaining quota`,
+    message:`Top Up success`,
+    new_value:dev.kuota,
     old_value:old
   })
 };
 export const devBuyInfo = async (req: Request, res: Response ,next: NextFunction) => {
-    
+    const {song_id}:
+    {song_id:string} = req.body;
+    let dev;
+    try{
+      const token = req.header('x-auth-token');
+      if(!token) throw new Error(); 
+      interface JwtPayload {
+        username:string,
+        kuota:number
+      }
+      const userdata = jwt.verify(token!,process.env.JWT_KEY!) as JwtPayload;
+      dev = await Developer.findByPk(userdata.username)
+      if(!dev){
+        throw new Error()
+      }
+    }catch(err){
+      return res.status(400).send('Unauthorized')
+    }
+    try {
+      await Joi.object({
+        song_id: Joi.string().required().label("song_id"),
+      }).validateAsync(req.body);
+    } catch (error) {
+      return res.status(400).send({ message: String(error) });
+    }
+    const old_quota:number = dev.kuota;
+    const Comments = await Comment.findAll({
+      attributes:['comment',['user_id','commented_by']],
+      where:{song_id:song_id}
+    });
+    const Reviews = await RatingReview.findAll({
+      attributes:['rating','review',['user_id','reviewed_by']],
+      where:{song_id:song_id}
+    });
+    if(Comments.length ==0 && Reviews.length == 0){
+      return res.status(404).send({
+        message:"Song ID has no related Comments or Review",
+        old_quota,
+        new_quota:old_quota
+      });
+    }
+    else{
+      if(dev.kuota <1){
+        return res.status(400).send({
+          message:"Not enough quota, please Top Up first!"
+        });
+      }
+      dev.kuota -= 1;
+      await dev.save();
+      return res.status(200).send({
+        song_id,
+        old_quota,
+        new_quota:dev.kuota,
+        Comments:Comments,
+        Reviews:Reviews,
+      });
+    }
 };
 
 
