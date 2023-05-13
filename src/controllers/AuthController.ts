@@ -11,11 +11,11 @@ export const login = async (
   res: Response,
   next: NextFunction,
 ) => {
-  const { body: { redirect_uri } } = req;
+  const { query: { redirect_uri } } = req;
   try {
     await Joi.object({
-      redirect_uri: Joi.string().required().uri(),
-    }).validateAsync(req.body);
+      redirect_uri: Joi.string().required().uri().label("redirect URI"),
+    }).validateAsync(req.query);
     dotenv.config();
     const state = generateRandomString(16);
     const scope = 'user-read-private user-read-email';
@@ -29,6 +29,7 @@ export const login = async (
     });
     res.cookie(stateKey, state);
     res.status(200).send({ url: 'https://accounts.spotify.com/authorize?' + queries });
+    // res.redirect(`https://accounts.spotify.com/authorize?${queries}`);
   }
   catch (error) {
     next(error);
@@ -40,16 +41,15 @@ export const callbackLogin = async (
   res: Response,
   next: NextFunction,
 ) => {
-  try {
-    const { body: { code, error, state, redirect_uri } }:
-      { body: { code: string, error: string, state: string, redirect_uri: string } } = req;
+  try { 
+    const { query: { code, error, state, redirect_uri } } = req;
     dotenv.config();
     await Joi.object({
       redirect_uri: Joi.string().required().uri().label("redirect URI"),
       code: Joi.string().optional(),
       error: Joi.string().optional(),
       state: Joi.string().required(),
-    }).xor("code", "error").validateAsync(req.body);
+    }).xor("code", "error").validateAsync(req.query);
     const storedState = req.cookies ? req.cookies[stateKey] : null;
     console.log('req.cookies:', req.cookies);
     console.log('storedState:', storedState);
@@ -86,11 +86,12 @@ export const refreshToken = async (
   next: NextFunction,
 ) => {
   try {
-    const { body: { refresh_token } }:
-      { body: { refresh_token: string } } = req;
+    // const { body: { refresh_token } }:
+    //   { body: { refresh_token: string } } = req;
+    const { query: refresh_token } = req;
     const client_id = process.env.CLIENT_ID!;
     const client_secret = process.env.CLIENT_SECRET!;
-    const response = await fetchRefreshToken(client_id, client_secret, refresh_token);
+    const response = await fetchRefreshToken(client_id, client_secret, String(refreshToken));
     return res.status(200).send(response.data);
   }
   catch (error) {
