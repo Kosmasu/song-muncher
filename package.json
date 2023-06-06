@@ -10,6 +10,7 @@
     "gas": "tsc && npx nodemon built",
     "dev": "npx nodemon ./src/index.ts",
     "migrate": "npx sequelize-cli db:migrate",
+    "seed": "npx sequelize-cli db:seed:all",
     "undo-migration": "npx sequelize-cli db:migrate:undo:all"
   },
   "keywords": [],
