@@ -82,7 +82,7 @@ export const deleteComment = async (
       return res.status(404).send({ message: "Comment is not found!" });
     }
     await commentDelete.destroy();
-    return res.status(201).send({
+    return res.status(200).send({
       message: "Comment is successfully deleted!",
       comment: commentDelete,
     });

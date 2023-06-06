@@ -9,7 +9,7 @@ const router: Router = express.Router();
 
 router.get("/", getComments);
 router.post("/", createComment);
-router.put("/:comment_id", updateComment);
-router.delete("/:delete_comment", deleteComment);
+router.patch("/:comment_id", updateComment);
+router.delete("/:comment_id", deleteComment);
 
 export default router;
