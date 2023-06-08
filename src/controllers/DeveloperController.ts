@@ -51,6 +51,7 @@ export const devLogin = async (
     next(error);
   }
 };
+
 export const devRegister = async (
   req: Request,
   res: Response,
@@ -86,16 +87,18 @@ export const devRegister = async (
     Developer: dev,
   });
 };
-export const devForgorPassword = async (
+
+export const devResetPassword = async (
   req: Request,
   res: Response,
   next: NextFunction
 ) => {
-  const { username, email } = req.body;
+  const { username, email,new_password } = req.body;
   try {
     await Joi.object({
       username: Joi.string().required().label("username"),
       email: Joi.string().required().label("email"),
+      new_password: Joi.string().required().label("new_password"),
     }).validateAsync(req.body);
   } catch (error) {
     return res.status(400).send({ message: String(error) });
@@ -107,13 +110,19 @@ export const devForgorPassword = async (
     },
   });
   if (!dev) {
-    return res.status(400).send({ message: "Invalid Credentials!" });
+    return res.status(404).send({ message: "Invalid Credentials!" });
   }
+  if(bcrypt.compareSync(new_password, dev.password)){
+    return res.status(400).send({ message: "New Password Cannot be Old Password!" });
+  }
+  dev.password = hashSync(new_password, 10);
+  await dev.save();
   return res.status(200).send({
-    message: `Credentials Match, hello ${dev.username}!`,
-    your_password: dev.password,
+    message: `Credentials Match, Password Reset Success. hello ${dev.username}!`,
+    your_new_password: new_password,
   });
 };
+
 export const devTopUp = async (
   req: Request,
   res: Response,
@@ -121,6 +130,7 @@ export const devTopUp = async (
 ) => {
   dotenv.config();
   const { username, amount } = req.body;
+  let userdata;
   try {
     const token = req.header("x-auth-token");
     if (!token) throw new Error();
@@ -128,12 +138,9 @@ export const devTopUp = async (
       username: string;
       kuota: number;
     }
-    const userdata = jwt.verify(token!, process.env.JWT_KEY!) as JwtPayload;
-    if (userdata.username != username) {
-      return res.status(400).send("Please authenticate");
-    }
+    userdata = jwt.verify(token!, process.env.JWT_KEY!) as JwtPayload;
   } catch (err) {
-    return res.status(400).send("Unauthorized");
+    return res.status(401).send("Unauthorized");
   }
   try {
     await Joi.object({
@@ -142,6 +149,9 @@ export const devTopUp = async (
     }).validateAsync(req.body);
   } catch (error) {
     return res.status(400).send({ message: String(error) });
+  }
+  if (userdata.username != username) {
+    return res.status(400).send("Invalid User Authentication");
   }
   const dev = await Developer.findByPk(username);
   if (!dev) {
@@ -157,6 +167,7 @@ export const devTopUp = async (
     old_value: old,
   });
 };
+
 export const devBuyInfo = async (
   req: Request,
   res: Response,
@@ -177,7 +188,7 @@ export const devBuyInfo = async (
       throw new Error();
     }
   } catch (err) {
-    return res.status(400).send("Unauthorized");
+    return res.status(401).send("Unauthorized");
   }
   try {
     await Joi.object({
@@ -238,7 +249,7 @@ export const devBuyCsv = async (
       throw new Error();
     }
   } catch (err) {
-    return res.status(400).send("Unauthorized");
+    return res.status(401).send("Unauthorized");
   }
 
   if (dev.kuota < 50) {
@@ -261,6 +272,7 @@ export const usernameExist = async (username: string) => {
   if (dev) throw new Error("Username sudah di gunakan");
   return dev;
 };
+
 export const emailExist = async (email: string) => {
   const dev = await Developer.findOne({
     where: {

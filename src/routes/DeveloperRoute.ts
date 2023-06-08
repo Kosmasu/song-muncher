@@ -2,7 +2,7 @@ import express, { Router } from "express";
 import {
   devLogin,
   devRegister,
-  devForgorPassword,
+  devResetPassword,
   devTopUp,
   devBuyInfo,
   devBuyCsv,
@@ -27,7 +27,7 @@ const upload = multer({ storage });
 
 router.get("/login", devLogin);
 router.post("/register", upload.single("image"), devRegister);
-router.get("/forget", devForgorPassword);
+router.put("/resetpassword", devResetPassword);
 router.post("/topup", devTopUp);
 router.get("/song", devBuyInfo);
 router.get("/csv", devBuyCsv);
