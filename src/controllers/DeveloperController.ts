@@ -1,9 +1,14 @@
+import { Parser } from "@json2csv/plainjs";
+import AdmZip from "adm-zip";
+import bcrypt, { hashSync } from "bcrypt";
 import * as dotenv from "dotenv";
 import { Request, Response, NextFunction } from "express";
+import fs from "fs";
 import Joi from "joi";
 import jwt from "jsonwebtoken";
 import multer from "multer";
-import bcrypt, { hashSync } from "bcrypt";
+import path, { dirname } from "path";
+import { fileURLToPath } from "url";
 import { Developer, RatingReview, Comment } from "../models/index.js";
 
 export const devLogin = async (
@@ -93,7 +98,7 @@ export const devResetPassword = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { username, email,new_password } = req.body;
+  const { username, email, new_password } = req.body;
   try {
     await Joi.object({
       username: Joi.string().required().label("username"),
@@ -112,8 +117,10 @@ export const devResetPassword = async (
   if (!dev) {
     return res.status(404).send({ message: "Invalid Credentials!" });
   }
-  if(bcrypt.compareSync(new_password, dev.password)){
-    return res.status(400).send({ message: "New Password Cannot be Old Password!" });
+  if (bcrypt.compareSync(new_password, dev.password)) {
+    return res
+      .status(400)
+      .send({ message: "New Password Cannot be Old Password!" });
   }
   dev.password = hashSync(new_password, 10);
   await dev.save();
@@ -257,10 +264,36 @@ export const devBuyCsv = async (
       message: "Not enough quota, please Top Up first!",
     });
   }
-  dev.kuota -= 50;
+  // dev.kuota -= 50;
   await dev.save();
 
-  return res.status(200).send({});
+  const rating = await RatingReview.findAll();
+  const comment = await Comment.findAll();
+
+  //WRITE RATINGS.CSV
+  const opts = {
+    fields: ["song_id", "user_id", "rating", "review"],
+  };
+  const parser = new Parser(opts);
+  fs.mkdirSync("storage/csv", { recursive: true });
+  fs.writeFileSync("storage/csv/ratings.csv", parser.parse(rating), null);
+
+  //WRITE COMMENTS.CSV
+  opts.fields = ["song_id", "user_id", "comment"];
+  fs.writeFileSync("storage/csv/comments.csv", parser.parse(comment), null);
+
+  //ZIP CSV
+  const zip = new AdmZip();
+  zip.addLocalFile("storage/csv/ratings.csv");
+  zip.addLocalFile("storage/csv/comments.csv");
+  zip.writeZip("storage/csv/csv.zip");
+
+  //DOWNLOAD CSV.ZIP
+  const __filename = fileURLToPath(import.meta.url);
+  const __dirname = dirname(__filename);
+  const file = path.resolve(path.join(__dirname, "../../storage/csv/csv.zip"));
+  res.attachment(file);
+  return res.send(file);
 };
 
 export const usernameExist = async (username: string) => {
