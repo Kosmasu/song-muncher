@@ -1,15 +1,18 @@
-import { Parser } from "@json2csv/plainjs";
-import AdmZip from "adm-zip";
-import bcrypt, { hashSync } from "bcrypt";
-import * as dotenv from "dotenv";
-import { Request, Response, NextFunction } from "express";
 import fs from "fs";
 import Joi from "joi";
-import jwt from "jsonwebtoken";
 import multer from "multer";
-import path, { dirname } from "path";
+import AdmZip from "adm-zip";
+import jwt from "jsonwebtoken";
+import * as dotenv from "dotenv";
+import nodemailer from "nodemailer";
 import { fileURLToPath } from "url";
+import path, { dirname } from "path";
+import bcrypt, { hashSync } from "bcrypt";
+import { Parser } from "@json2csv/plainjs";
+import { Request, Response, NextFunction } from "express";
+import { generateRandomString } from "../helper/index.js";
 import { Developer, RatingReview, Comment } from "../models/index.js";
+import { error } from "console";
 
 export const devLogin = async (
   req: Request,
@@ -98,12 +101,12 @@ export const devResetPassword = async (
   res: Response,
   next: NextFunction
 ) => {
-  const { username, email, new_password } = req.body;
+  dotenv.config();
+  const { username, email} = req.body;
   try {
     await Joi.object({
       username: Joi.string().required().label("username"),
       email: Joi.string().required().label("email"),
-      new_password: Joi.string().required().label("new_password"),
     }).validateAsync(req.body);
   } catch (error) {
     return res.status(400).send({ message: String(error) });
@@ -117,16 +120,42 @@ export const devResetPassword = async (
   if (!dev) {
     return res.status(404).send({ message: "Invalid Credentials!" });
   }
-  if (bcrypt.compareSync(new_password, dev.password)) {
-    return res
-      .status(400)
-      .send({ message: "New Password Cannot be Old Password!" });
+  let newRandPassword = generateRandomString(8);
+  dev.password = hashSync(newRandPassword, 10);
+  try {
+    let tunggu = await dev.save();
+    if(!tunggu){throw new Error()}
+  } catch (error) {
+    return res.status(404).send({ message: "Failed to change Password" });
   }
-  dev.password = hashSync(new_password, 10);
-  await dev.save();
+
+  const transporter =  nodemailer.createTransport({
+    host:process.env["SMTP_HOST"],
+    port:2525,
+    auth:{
+      user:process.env["SMTP_USERNAME"],
+      pass:process.env["SMTP_PASSWORD"]
+    }
+  });
+
+  const mailOptions = {
+    from:process.env["SMTP_SENDER"],
+    to:process.env["SMTP_RECEIVER"],
+    subject: 'Password Reset Request',
+    text: 'Hey it looks like you requested a password reset! ',
+    html: `<b>Hey there, below you will find your new password! </b><br><br> Your new password : ${newRandPassword}<br><br> <img src="https://cdn.discordapp.com/attachments/757512219855683645/1118482866528059532/noted.jpg" alt="" style="height: 200px; width: 400px;">`,
+  };
+
+  transporter.sendMail(mailOptions,(error,info)=>{
+    if(error){
+      return res.status(400).send({ message: "Mailer Failure" });
+    }
+    console.log('Email sent: ' + info.response);
+  });
+
   return res.status(200).send({
-    message: `Credentials Match, Password Reset Success. hello ${dev.username}!`,
-    your_new_password: new_password,
+    status:`Password Reset Success`,
+    message:"Please check your email for your new password!"
   });
 };
 
@@ -331,3 +360,4 @@ export const storage = multer.diskStorage({
     );
   },
 });
+
