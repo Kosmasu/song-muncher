@@ -41,7 +41,7 @@ export const callbackLogin = async (
   res: Response,
   next: NextFunction,
 ) => {
-  try { 
+  try {
     const { query: { code, error, state, redirect_uri } } = req;
     dotenv.config();
     await Joi.object({
@@ -86,12 +86,11 @@ export const refreshToken = async (
   next: NextFunction,
 ) => {
   try {
-    // const { body: { refresh_token } }:
-    //   { body: { refresh_token: string } } = req;
-    const { query: refresh_token } = req;
+    const { query: { refresh_token } } = req;
     const client_id = process.env.CLIENT_ID!;
     const client_secret = process.env.CLIENT_SECRET!;
-    const response = await fetchRefreshToken(client_id, client_secret, String(refreshToken));
+    console.log('refresh_token:', refresh_token);
+    const response = await fetchRefreshToken(client_id, client_secret, String(refresh_token));
     return res.status(200).send(response.data);
   }
   catch (error) {
