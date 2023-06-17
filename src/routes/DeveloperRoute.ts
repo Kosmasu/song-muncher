@@ -28,7 +28,7 @@ const upload = multer({ storage });
 router.get("/login", devLogin);
 router.post("/register", upload.single("image"), devRegister);
 router.put("/resetpassword", devResetPassword);
-router.post("/topup", devTopUp);
+router.put("/topup", devTopUp);
 router.get("/song", devBuyInfo);
 router.get("/csv", devBuyCsv);
 

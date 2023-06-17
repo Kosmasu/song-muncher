@@ -165,7 +165,7 @@ export const devTopUp = async (
   next: NextFunction
 ) => {
   dotenv.config();
-  const { username, amount } = req.body;
+  const {  amount } = req.body;
   let userdata;
   try {
     const token = req.header("x-auth-token");
@@ -176,22 +176,24 @@ export const devTopUp = async (
     }
     userdata = jwt.verify(token!, process.env.JWT_KEY!) as JwtPayload;
   } catch (err) {
-    return res.status(401).send("Unauthorized");
+    return res.status(401).send({ 
+      status:401,
+      message: "Unauthorized" 
+    });
   }
   try {
     await Joi.object({
-      username: Joi.string().required().label("username"),
       amount: Joi.number().min(5).required().label("amount"),
     }).validateAsync(req.body);
   } catch (error) {
-    return res.status(400).send({ message: String(error) });
+    next(error);
   }
-  if (userdata.username != username) {
-    return res.status(400).send("Invalid User Authentication");
-  }
-  const dev = await Developer.findByPk(username);
+  const dev = await Developer.findByPk(userdata?.username);
   if (!dev) {
-    return res.status(400).send({ message: "Invalid Credentials!" });
+    return res.status(401).send({ 
+      status:401,
+      message: "Unauthorized" 
+    });
   }
   const old: number = dev.kuota;
   dev.kuota += parseInt(amount);
@@ -224,14 +226,17 @@ export const devBuyInfo = async (
       throw new Error();
     }
   } catch (err) {
-    return res.status(401).send("Unauthorized");
+    return res.status(401).send({ 
+      status:401,
+      message: "Unauthorized" 
+    });
   }
   try {
     await Joi.object({
       song_id: Joi.string().required().label("song_id"),
     }).validateAsync(req.body);
   } catch (error) {
-    return res.status(400).send({ message: String(error) });
+    next(error);
   }
   const old_quota: number = dev.kuota;
   const Comments = await Comment.findAll({
@@ -251,6 +256,7 @@ export const devBuyInfo = async (
   } else {
     if (dev.kuota < 1) {
       return res.status(400).send({
+        status:400,
         message: "Not enough quota, please Top Up first!",
       });
     }

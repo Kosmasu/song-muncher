@@ -1,5 +1,8 @@
 import { NextFunction, Request, Response } from "express";
 import { fetchSongs, fetchSong } from "../services/SongService.js";
+import { RatingReview } from "../models/index.js";
+import { Comment } from "../models/index.js";
+import { getUserID } from "./UserController.js";
 import Joi from "joi";
 
 export const getSongs = async (
@@ -50,6 +53,31 @@ export const getSong = async (
     );
     return res.status(200).send(response.data);
   } catch (error) {
+    next(error);
+  }
+};
+
+export const getSelfData = async (req: Request,res: Response,next: NextFunction) => {
+  try{
+    const user_id = await getUserID(req.headers.authorization as string);
+    const ratings = await RatingReview.findAll({
+      where:{
+        user_id:user_id
+      },
+      attributes:['song_id','rating','review']
+    });
+    const comments = await Comment.findAll({
+      where:{
+        user_id:user_id
+      },
+      attributes:['song_id','comment']
+    });
+    return res.status(200).send({
+      user_id,
+      Comments: comments,
+      RatingReview:ratings
+    });
+  }catch(error){
     next(error);
   }
 };
