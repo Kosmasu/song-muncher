@@ -1,0 +1,67 @@
+QC Sabtu 17 Juni 2023
+
+Daftar fitur:
+    Developer: ❌
+		* Kurang description pada tiap parameter
+	1. Login [JK] ❌
+		* Kurang description pada tiap parameter
+	2. Register (ini ada upload KTP) [JK]❌
+		* Kurang description pada tiap parameter
+		>> Username
+		>> Email
+		>> password
+		>> Upload KTP
+	3. Forget Password [JK] ❌
+		* Kurang description pada tiap parameter
+	4. Beli kuota (ini bodoh2an, nda ada verifikasi 😁😁😁😁😁😁) [JK] ❌
+		* Kurang description pada tiap parameter
+		* nda perlu parameter 'username' kan bisa ngambil dari jwt token
+		* coba cek lagi http method yg cocok apa, krn setahuku POST itu kalau mau buat entry baru
+		* perhatikan lagi example nya dan cara throw error, coba liat kodingan ku
+			- contoh example yang 400 invalid dan 401 unauthorized nda dibungkus message
+			- contoh example yang validation error ini nda benar
+			ini kan udah ada global error handler (GlobalErrorHandler.ts) jdi kalo catch error nda usah dihandle, lempar (next) aja ke global error handlernya. biar konsisten
+		>> jumlah kuota
+		>> nominal
+	5. download file .csv berisi rating, review, dan comment [cost: 50 kuota] [Odi] ❌
+		* perhatikan lagi example nya dan cara throw error, coba liat kodingan ku. 
+			ini kan udah ada global error handler jdi kalo catch error nda usah dihandle, lempar (next) aja ke global error handlernya. biar konsisten. kalo ada error baru yang belum terhandle tambah aj di global error handler (GlobalErrorHandler.ts)
+		* download nya harusnya cuman .zip. tapi ini download 3 file 'comments.csv', 'csv.zip', 'ratings.csv'
+		* 'comments.csv' ini salah. diperhatikan lagi 😊😊😊
+		* sebaiknya return old_quota dan new_quota, kayak endpoint nya jk
+		* kayak quota nya nda ngurang 😔😔😔😔😔😔😔😔😔
+	6. get rating , review dan comment-comment dari satu [cost: 1 kuota] [JK] ❌
+		* sama kyk nomor 4, perhatikan lagi example dan cara throw error.
+		
+    
+    Pemberi review:
+        1. login (pake auth nya spotify) [Ken] ✔
+        2. search song [Odi] ✔
+        3. lihat detail satu song  [Ken] ✔
+        4. lihat rating, review, dan comment-comment dari milik sendiri [JK] ❌
+			* Ini kok belum ada 💀💀💀💀💀
+        5. create rating dan review [Ken] ✔
+        6. edit rating dan review [Ken] ✔
+        7. delete rating dan review [Ken] ✔
+        8. create comment [Odi] ✔
+        9. edit comment [Odi] ✔
+        10. delete comment [Odi] ✔
+		
+		catatan: 
+			nomor 4-10 wajib login.
+			nomor 1-3 pake 3rd party spotify
+		
+	Database:
+		1. Design Database [Bersama-sama]
+		2. Migration [Odi]
+		3. Seeder  dan faker[Odi]
+		4. Model [Odi]
+		
+	Postman: [Masing2]
+		1. Dokumentasi
+		2. Testing
+			
+syarat proyek:
+    1. 3rd party API: spotify 
+    2. payment model: kuota, 1 kuota = Rp. 2.000
+    3. upload file: Foto KTP untuk registrasi Developer
