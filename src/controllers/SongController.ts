@@ -17,7 +17,7 @@ export const getSongs = async (
       type: Joi.string().optional().label("type"),
     }).validateAsync(req.query);
   } catch (error) {
-    return res.status(400).send({ message: String(error) });
+    next(error);
   }
   try {
     const response = await fetchSongs(
@@ -28,7 +28,7 @@ export const getSongs = async (
     if (type) {
       const resArtistSongs = [];
       for (let i = 0; i < response.data.artists.items.length; i++) {
-        resArtistSongs.push(response.data.artists.items[i].id)
+        resArtistSongs.push(response.data.artists.items[i].id);
       }
       return res.status(200).send(resArtistSongs);
     }
@@ -57,27 +57,31 @@ export const getSong = async (
   }
 };
 
-export const getSelfData = async (req: Request,res: Response,next: NextFunction) => {
-  try{
+export const getSelfData = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
     const user_id = await getUserID(req.headers.authorization as string);
     const ratings = await RatingReview.findAll({
-      where:{
-        user_id:user_id
+      where: {
+        user_id: user_id,
       },
-      attributes:['song_id','rating','review']
+      attributes: ["song_id", "rating", "review"],
     });
     const comments = await Comment.findAll({
-      where:{
-        user_id:user_id
+      where: {
+        user_id: user_id,
       },
-      attributes:['song_id','comment']
+      attributes: ["song_id", "comment"],
     });
     return res.status(200).send({
       user_id,
       Comments: comments,
-      RatingReview:ratings
+      RatingReview: ratings,
     });
-  }catch(error){
+  } catch (error) {
     next(error);
   }
 };

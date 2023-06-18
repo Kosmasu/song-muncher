@@ -2,7 +2,7 @@ import fs from "fs";
 import Joi from "joi";
 import multer from "multer";
 import AdmZip from "adm-zip";
-import jwt from "jsonwebtoken";
+import jwt, { JsonWebTokenError } from "jsonwebtoken";
 import * as dotenv from "dotenv";
 import nodemailer from "nodemailer";
 import { fileURLToPath } from "url";
@@ -13,6 +13,7 @@ import { Request, Response, NextFunction } from "express";
 import { generateRandomString } from "../helper/index.js";
 import { Developer, RatingReview, Comment } from "../models/index.js";
 import { error } from "console";
+import { send } from "process";
 
 export const devLogin = async (
   req: Request,
@@ -102,7 +103,7 @@ export const devResetPassword = async (
   next: NextFunction
 ) => {
   dotenv.config();
-  const { username, email} = req.body;
+  const { username, email } = req.body;
   try {
     await Joi.object({
       username: Joi.string().required().label("username"),
@@ -124,38 +125,40 @@ export const devResetPassword = async (
   dev.password = hashSync(newRandPassword, 10);
   try {
     let tunggu = await dev.save();
-    if(!tunggu){throw new Error()}
+    if (!tunggu) {
+      throw new Error();
+    }
   } catch (error) {
     return res.status(404).send({ message: "Failed to change Password" });
   }
 
-  const transporter =  nodemailer.createTransport({
-    host:process.env["SMTP_HOST"],
-    port:2525,
-    auth:{
-      user:process.env["SMTP_USERNAME"],
-      pass:process.env["SMTP_PASSWORD"]
-    }
+  const transporter = nodemailer.createTransport({
+    host: process.env["SMTP_HOST"],
+    port: 2525,
+    auth: {
+      user: process.env["SMTP_USERNAME"],
+      pass: process.env["SMTP_PASSWORD"],
+    },
   });
 
   const mailOptions = {
-    from:process.env["SMTP_SENDER"],
-    to:process.env["SMTP_RECEIVER"],
-    subject: 'Password Reset Request',
-    text: 'Hey it looks like you requested a password reset! ',
+    from: process.env["SMTP_SENDER"],
+    to: process.env["SMTP_RECEIVER"],
+    subject: "Password Reset Request",
+    text: "Hey it looks like you requested a password reset! ",
     html: `<b>Hey there, below you will find your new password! </b><br><br> Your new password : ${newRandPassword}<br><br> <img src="https://cdn.discordapp.com/attachments/757512219855683645/1118482866528059532/noted.jpg" alt="" style="height: 200px; width: 400px;">`,
   };
 
-  transporter.sendMail(mailOptions,(error,info)=>{
-    if(error){
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
       return res.status(400).send({ message: "Mailer Failure" });
     }
-    console.log('Email sent: ' + info.response);
+    console.log("Email sent: " + info.response);
   });
 
   return res.status(200).send({
-    status:`Password Reset Success`,
-    message:"Please check your email for your new password!"
+    status: `Password Reset Success`,
+    message: "Please check your email for your new password!",
   });
 };
 
@@ -165,7 +168,7 @@ export const devTopUp = async (
   next: NextFunction
 ) => {
   dotenv.config();
-  const {  amount } = req.body;
+  const { amount } = req.body;
   let userdata;
   try {
     const token = req.header("x-auth-token");
@@ -176,9 +179,9 @@ export const devTopUp = async (
     }
     userdata = jwt.verify(token!, process.env.JWT_KEY!) as JwtPayload;
   } catch (err) {
-    return res.status(401).send({ 
-      status:401,
-      message: "Unauthorized" 
+    return res.status(401).send({
+      status: 401,
+      message: "Unauthorized",
     });
   }
   try {
@@ -190,9 +193,9 @@ export const devTopUp = async (
   }
   const dev = await Developer.findByPk(userdata?.username);
   if (!dev) {
-    return res.status(401).send({ 
-      status:401,
-      message: "Unauthorized" 
+    return res.status(401).send({
+      status: 401,
+      message: "Unauthorized",
     });
   }
   const old: number = dev.kuota;
@@ -226,9 +229,9 @@ export const devBuyInfo = async (
       throw new Error();
     }
   } catch (err) {
-    return res.status(401).send({ 
-      status:401,
-      message: "Unauthorized" 
+    return res.status(401).send({
+      status: 401,
+      message: "Unauthorized",
     });
   }
   try {
@@ -256,7 +259,7 @@ export const devBuyInfo = async (
   } else {
     if (dev.kuota < 1) {
       return res.status(400).send({
-        status:400,
+        status: 400,
         message: "Not enough quota, please Top Up first!",
       });
     }
@@ -277,30 +280,34 @@ export const devBuyCsv = async (
   res: Response,
   next: NextFunction
 ) => {
+  interface JwtPayload {
+    username: string;
+    kuota: number;
+  }
   let dev;
+  let old_quota: number;
   try {
     const token = req.header("x-auth-token");
-    if (!token) throw new Error();
-    interface JwtPayload {
-      username: string;
-      kuota: number;
+    if (!token) {
+      const error = new Error("Unauthorized");
+      error.name = "Unauthorized";
+      throw error;
     }
     const userdata = jwt.verify(token!, process.env.JWT_KEY!) as JwtPayload;
     dev = await Developer.findByPk(userdata.username);
-    if (!dev) {
-      throw new Error();
-    }
-  } catch (err) {
-    return res.status(401).send("Unauthorized");
+    if (!dev) throw new Error();
+  } catch (error) {
+    next(error);
   }
 
-  if (dev.kuota < 50) {
+  if (dev!.kuota < 50) {
     return res.status(400).send({
       message: "Not enough quota, please Top Up first!",
     });
   }
-  // dev.kuota -= 50;
-  await dev.save();
+  old_quota = dev!.kuota;
+  dev!.kuota -= 50;
+  await dev!.save();
 
   const rating = await RatingReview.findAll();
   const comment = await Comment.findAll();
@@ -309,12 +316,13 @@ export const devBuyCsv = async (
   const opts = {
     fields: ["song_id", "user_id", "rating", "review"],
   };
-  const parser = new Parser(opts);
+  let parser = new Parser(opts);
   fs.mkdirSync("storage/csv", { recursive: true });
   fs.writeFileSync("storage/csv/ratings.csv", parser.parse(rating), null);
 
   //WRITE COMMENTS.CSV
-  opts.fields = ["song_id", "user_id", "comment"];
+  opts.fields = ["id", "comment", "parent_id", "song_id", "user_id"];
+  parser = new Parser(opts);
   fs.writeFileSync("storage/csv/comments.csv", parser.parse(comment), null);
 
   //ZIP CSV
@@ -327,8 +335,21 @@ export const devBuyCsv = async (
   const __filename = fileURLToPath(import.meta.url);
   const __dirname = dirname(__filename);
   const file = path.resolve(path.join(__dirname, "../../storage/csv/csv.zip"));
-  res.attachment(file);
-  return res.send(file);
+  return res.download(
+    file,
+    "csv.zip",
+    {
+      headers: { "Content-Type": "application/zip" },
+    },
+    (err) => {
+      if (err) {
+      } else {
+        fs.unlinkSync("storage/csv/ratings.csv");
+        fs.unlinkSync("storage/csv/comments.csv");
+        fs.unlinkSync("storage/csv/csv.zip");
+      }
+    }
+  );
 };
 
 export const usernameExist = async (username: string) => {
@@ -366,4 +387,3 @@ export const storage = multer.diskStorage({
     );
   },
 });
-

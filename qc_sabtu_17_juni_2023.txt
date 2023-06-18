@@ -24,12 +24,12 @@ Daftar fitur:
 		>> jumlah kuota
 		>> nominal
 	5. download file .csv berisi rating, review, dan comment [cost: 50 kuota] [Odi] ❌
-		* perhatikan lagi example nya dan cara throw error, coba liat kodingan ku. 
+		* perhatikan lagi example nya dan cara throw error, coba liat kodingan ku. ✔
 			ini kan udah ada global error handler jdi kalo catch error nda usah dihandle, lempar (next) aja ke global error handlernya. biar konsisten. kalo ada error baru yang belum terhandle tambah aj di global error handler (GlobalErrorHandler.ts)
-		* download nya harusnya cuman .zip. tapi ini download 3 file 'comments.csv', 'csv.zip', 'ratings.csv'
-		* 'comments.csv' ini salah. diperhatikan lagi 😊😊😊
-		* sebaiknya return old_quota dan new_quota, kayak endpoint nya jk
-		* kayak quota nya nda ngurang 😔😔😔😔😔😔😔😔😔
+		* download nya harusnya cuman .zip. tapi ini download 3 file 'comments.csv', 'csv.zip', 'ratings.csv' ✔
+		* 'comments.csv' ini salah. diperhatikan lagi 😊😊😊 ✔
+		* sebaiknya return old_quota dan new_quota, kayak endpoint nya jk (send and download ga bisa return body message)
+		* kayak quota nya nda ngurang 😔😔😔😔😔😔😔😔😔 ✔
 	6. get rating , review dan comment-comment dari satu [cost: 1 kuota] [JK] ❌
 		* sama kyk nomor 4, perhatikan lagi example dan cara throw error.
 		

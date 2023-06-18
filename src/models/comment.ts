@@ -4,7 +4,6 @@ import {
   Column,
   Model,
   DataType,
-  AllowNull,
   CreatedAt,
   UpdatedAt,
   DeletedAt,
