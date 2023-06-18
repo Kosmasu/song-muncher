@@ -1,0 +1,71 @@
+QC Sabtu 17 Juni 2023
+
+Daftar fitur:
+    Developer:
+	** pake middleware. misal untuk endpoint yang perlu developer login, kasih middleware.
+	** pake custom error. jgn throw new Error("message disini"). contoh custom error ada di folder ./src/exceptions. lalu implement di GlobalErrorHandler. contoh error unauthorized. implement dlm middleware nya
+	** dlm controller, nda boleh return res.status(error). itu tugasnya global error handler. dlm controller hanya boleh throw new error yang akan di passing ke global error handler.
+	** buat satu aja Interface JwtPayload taro di folder. trus tinggal import
+	1. Login [JK] ❌
+		* cara throw error tidak sesuai. 
+	2. Register (ini ada upload KTP) [JK] ❌
+		* cara throw error tidak sesuai. perbaiki example
+		>> Username
+		>> Email
+		>> password
+		>> Upload KTP
+	3. Forget Password [JK] ❌
+		* cara throw error tidak sesuai. perbaiki example
+		* ndak perlu ada parameter username dan email, karena ketika register sudah ada emailnya. dan ini bisa diambil dari payload jwt token.
+	4. Beli kuota (ini bodoh2an, nda ada verifikasi 😁😁😁😁😁😁) [JK] ~
+		>> jumlah kuota
+		>> nominal
+	5. download file .csv berisi rating, review, dan comment [cost: 50 kuota] [Odi] ❌
+		* error kalo coba downlaod klo blm login. lihat dibawah. 
+	6. get rating , review dan comment-comment dari satu [cost: 1 kuota] [JK] ~
+		
+    
+    Pemberi review:
+        1. login (pake auth nya spotify) [Ken] ✔
+        2. search song [Odi] ❌
+			* perhatikan lagi example nya dan cara throw error, coba liat kodingan ku.
+        3. lihat detail satu song  [Ken] ✔
+        4. lihat rating, review, dan comment-comment dari milik sendiri [JK] ❌
+			* Tambah example 404 not found kalo tidak ada comment, rating atau review sama sekali
+        5. create rating dan review [Ken] ✔
+        6. edit rating dan review [Ken] ✔
+        7. delete rating dan review [Ken] ✔
+        8. create comment [Odi] ❌
+			* perhatikan lagi example nya dan cara throw error, coba liat kodingan ku.
+        9. edit comment [Odi] ❌
+			* perhatikan lagi example nya dan cara throw error, coba liat kodingan ku.
+        10. delete comment [Odi] ❌
+			* perhatikan lagi example nya dan cara throw error, coba liat kodingan ku.
+		
+		catatan: 
+			nomor 4-10 wajib login.
+			nomor 1-3 pake 3rd party spotify
+	
+	Legend:
+	✔: Done. Fixed
+	❌: Need fixing for sure
+	~: Need checking. lihat point **
+
+* Error download csv if not logged in
+Executing (default): SELECT `song_id`, `rating`, `review` FROM `RatingReviews` AS `RatingReview` WHERE (`RatingReview`.`deleted_at` IS NULL AND 
+`RatingReview`.`user_id` = 'a7o6sqtgentci8zl1wjcf6hbz');
+Executing (default): SELECT `song_id`, `comment` FROM `Comments` AS `Comment` WHERE (`Comment`.`deleted_at` IS NULL AND `Comment`.`user_id` = 'a7o6sqtgentci8zl1wjcf6hbz');
+file:///D:/Dokumen/Kuliah/Semester_6/SOA/song-muncher/src/controllers/DeveloperController.ts:303  if (dev!.kuota < 50) {
+           ^
+TypeError: Cannot read properties of undefined (reading 'kuota')
+    at devBuyCsv (file:///D:/Dokumen/Kuliah/Semester_6/SOA/song-muncher/src/controllers/DeveloperController.ts:303:12)
+    at Layer.handle [as handle_request] (D:\Dokumen\Kuliah\Semester_6\SOA\song-muncher\node_modules\express\lib\router\layer.js:95:5)
+    at next (D:\Dokumen\Kuliah\Semester_6\SOA\song-muncher\node_modules\express\lib\router\route.js:144:13)
+    at Route.dispatch (D:\Dokumen\Kuliah\Semester_6\SOA\song-muncher\node_modules\express\lib\router\route.js:114:3)
+    at Layer.handle [as handle_request] (D:\Dokumen\Kuliah\Semester_6\SOA\song-muncher\node_modules\express\lib\router\layer.js:95:5)
+    at D:\Dokumen\Kuliah\Semester_6\SOA\song-muncher\node_modules\express\lib\router\index.js:284:15
+    at Function.process_params (D:\Dokumen\Kuliah\Semester_6\SOA\song-muncher\node_modules\express\lib\router\index.js:346:12)
+    at next (D:\Dokumen\Kuliah\Semester_6\SOA\song-muncher\node_modules\express\lib\router\index.js:280:10)
+    at Function.handle (D:\Dokumen\Kuliah\Semester_6\SOA\song-muncher\node_modules\express\lib\router\index.js:175:3)
+    at router (D:\Dokumen\Kuliah\Semester_6\SOA\song-muncher\node_modules\express\lib\router\index.js:47:12)
+[nodemon] app crashed - waiting for file changes before starting...
