@@ -16,10 +16,6 @@ export const getSongs = async (
       query: Joi.string().required().label("query"),
       type: Joi.string().optional().label("type"),
     }).validateAsync(req.query);
-  } catch (error) {
-    next(error);
-  }
-  try {
     const response = await fetchSongs(
       query?.toString() ?? "",
       type?.toString() ?? "track",

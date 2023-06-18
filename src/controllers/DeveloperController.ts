@@ -285,7 +285,6 @@ export const devBuyCsv = async (
     kuota: number;
   }
   let dev;
-  let old_quota: number;
   try {
     const token = req.header("x-auth-token");
     if (!token) {
@@ -296,18 +295,15 @@ export const devBuyCsv = async (
     const userdata = jwt.verify(token!, process.env.JWT_KEY!) as JwtPayload;
     dev = await Developer.findByPk(userdata.username);
     if (!dev) throw new Error();
+
+    if (dev.kuota < 50) {
+      return res.status(400).send({
+        message: "Not enough quota, please Top Up first!",
+      });
+    }
   } catch (error) {
     next(error);
   }
-
-  if (dev!.kuota < 50) {
-    return res.status(400).send({
-      message: "Not enough quota, please Top Up first!",
-    });
-  }
-  old_quota = dev!.kuota;
-  dev!.kuota -= 50;
-  await dev!.save();
 
   const rating = await RatingReview.findAll();
   const comment = await Comment.findAll();
@@ -341,12 +337,15 @@ export const devBuyCsv = async (
     {
       headers: { "Content-Type": "application/zip" },
     },
-    (err) => {
+    async (err) => {
       if (err) {
       } else {
         fs.unlinkSync("storage/csv/ratings.csv");
         fs.unlinkSync("storage/csv/comments.csv");
         fs.unlinkSync("storage/csv/csv.zip");
+
+        dev!.kuota -= 50;
+        await dev!.save();
       }
     }
   );

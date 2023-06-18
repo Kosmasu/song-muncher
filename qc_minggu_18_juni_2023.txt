@@ -20,14 +20,14 @@ Daftar fitur:
 	4. Beli kuota (ini bodoh2an, nda ada verifikasi 😁😁😁😁😁😁) [JK] ~
 		>> jumlah kuota
 		>> nominal
-	5. download file .csv berisi rating, review, dan comment [cost: 50 kuota] [Odi] ❌
+	5. download file .csv berisi rating, review, dan comment [cost: 50 kuota] [Odi] ✔
 		* error kalo coba downlaod klo blm login. lihat dibawah. 
 	6. get rating , review dan comment-comment dari satu [cost: 1 kuota] [JK] ~
 		
     
     Pemberi review:
         1. login (pake auth nya spotify) [Ken] ✔
-        2. search song [Odi] ❌
+        2. search song [Odi] ✔
 			* perhatikan lagi example nya dan cara throw error, coba liat kodingan ku.
         3. lihat detail satu song  [Ken] ✔
         4. lihat rating, review, dan comment-comment dari milik sendiri [JK] ❌
@@ -35,11 +35,11 @@ Daftar fitur:
         5. create rating dan review [Ken] ✔
         6. edit rating dan review [Ken] ✔
         7. delete rating dan review [Ken] ✔
-        8. create comment [Odi] ❌
+        8. create comment [Odi] ✔
 			* perhatikan lagi example nya dan cara throw error, coba liat kodingan ku.
-        9. edit comment [Odi] ❌
+        9. edit comment [Odi] ✔
 			* perhatikan lagi example nya dan cara throw error, coba liat kodingan ku.
-        10. delete comment [Odi] ❌
+        10. delete comment [Odi] ✔
 			* perhatikan lagi example nya dan cara throw error, coba liat kodingan ku.
 		
 		catatan: 
