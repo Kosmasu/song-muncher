@@ -4,6 +4,8 @@ import { RatingReview } from "../models/index.js";
 import { Comment } from "../models/index.js";
 import { getUserID } from "./UserController.js";
 import Joi from "joi";
+import { error } from "console";
+import { RateRevComNotFOund } from "../exceptions/AnyError.js";
 
 export const getSongs = async (
   req: Request,
@@ -72,6 +74,9 @@ export const getSelfData = async (
       },
       attributes: ["song_id", "comment"],
     });
+    if(ratings.length == 0 && comments.length == 0){
+      throw new RateRevComNotFOund("User Belum Memberi Review dan Comment")
+    }
     return res.status(200).send({
       user_id,
       Comments: comments,

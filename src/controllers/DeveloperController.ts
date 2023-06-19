@@ -14,6 +14,8 @@ import { generateRandomString } from "../helper/index.js";
 import { Developer, RatingReview, Comment } from "../models/index.js";
 import { error } from "console";
 import { send } from "process";
+import { JwtPayloadIF } from "../interface/jwt.js";
+import { BadRequestMessage, DeveloperNotFound, RateRevComNotFOund, Unauthorized } from "../exceptions/AnyError.js";
 
 export const devLogin = async (
   req: Request,
@@ -28,23 +30,20 @@ export const devLogin = async (
       password: Joi.string().required().label("password"),
     }).validateAsync(req.body);
   } catch (error) {
-    return res.status(400).send({ message: String(error) });
+    next(error);
   }
   try {
     const targetDev = await Developer.findByPk(username);
     if (!targetDev) {
-      return res.status(404).send({
-        message: "Developer Account Not Found!",
-      });
+      throw new DeveloperNotFound()
     }
     if (!bcrypt.compareSync(password, targetDev.password)) {
-      return res.status(400).send({
-        message: "Password Invalid!",
-      });
+      throw new BadRequestMessage("Password Invalid!")
     }
     const token = jwt.sign(
       {
         username: targetDev.username,
+        email:targetDev.email,
         kuota: targetDev.kuota,
       },
       process.env.JWT_KEY!
@@ -81,20 +80,20 @@ export const devRegister = async (
         .label("confirmation_password"),
       email: Joi.string().required().external(emailExist).label("email"),
     }).validateAsync(req.body);
-  } catch (error) {
-    return res.status(400).send({ message: String(error) });
-  }
 
-  const dev = await Developer.create({
-    username,
-    password: hashSync(password, 10),
-    email,
-    kuota: 0,
-  });
-  return res.status(201).send({
-    message: `Register success, welcome ${username}!`,
-    Developer: dev,
-  });
+    const dev = await Developer.create({
+      username,
+      password: hashSync(password, 10),
+      email,
+      kuota: 0,
+    });
+    return res.status(201).send({
+      message: `Register success, welcome ${username}!`,
+      Developer: dev,
+    });
+  } catch (error) {
+    next(error)
+  }
 };
 
 export const devResetPassword = async (
@@ -106,30 +105,25 @@ export const devResetPassword = async (
   const { username, email } = req.body;
   try {
     await Joi.object({
-      username: Joi.string().required().label("username"),
       email: Joi.string().required().label("email"),
     }).validateAsync(req.body);
   } catch (error) {
-    return res.status(400).send({ message: String(error) });
+    next(error);
   }
   const dev = await Developer.findOne({
     where: {
-      username: username,
       email: email,
     },
   });
   if (!dev) {
-    return res.status(404).send({ message: "Invalid Credentials!" });
+    throw new DeveloperNotFound()
   }
   let newRandPassword = generateRandomString(8);
   dev.password = hashSync(newRandPassword, 10);
   try {
-    let tunggu = await dev.save();
-    if (!tunggu) {
-      throw new Error();
-    }
+    await dev.save();
   } catch (error) {
-    return res.status(404).send({ message: "Failed to change Password" });
+    next(error)
   }
 
   const transporter = nodemailer.createTransport({
@@ -151,7 +145,7 @@ export const devResetPassword = async (
 
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
-      return res.status(400).send({ message: "Mailer Failure" });
+      throw new BadRequestMessage("Mailer Failure")
     }
     console.log("Email sent: " + info.response);
   });
@@ -172,17 +166,10 @@ export const devTopUp = async (
   let userdata;
   try {
     const token = req.header("x-auth-token");
-    if (!token) throw new Error();
-    interface JwtPayload {
-      username: string;
-      kuota: number;
-    }
-    userdata = jwt.verify(token!, process.env.JWT_KEY!) as JwtPayload;
+    if (!token) throw new Unauthorized();
+    userdata = jwt.verify(token!, process.env.JWT_KEY!) as JwtPayloadIF;
   } catch (err) {
-    return res.status(401).send({
-      status: 401,
-      message: "Unauthorized",
-    });
+    next(err)
   }
   try {
     await Joi.object({
@@ -191,22 +178,23 @@ export const devTopUp = async (
   } catch (error) {
     next(error);
   }
-  const dev = await Developer.findByPk(userdata?.username);
-  if (!dev) {
-    return res.status(401).send({
-      status: 401,
-      message: "Unauthorized",
-    });
-  }
-  const old: number = dev.kuota;
-  dev.kuota += parseInt(amount);
-  await dev.save();
+  try {
+    const dev = await Developer.findByPk(userdata!.username);
+    if (!dev) {
+      throw new DeveloperNotFound()
+    }
+    const old: number = dev.kuota;
+    dev.kuota += parseInt(amount);
+    await dev.save();
 
-  return res.status(200).send({
-    message: `Top Up success`,
-    new_value: dev.kuota,
-    old_value: old,
-  });
+    return res.status(200).send({
+      message: `Top Up success`,
+      new_value: dev.kuota,
+      old_value: old,
+    });
+  } catch (error) {
+    next(error)
+  }
 };
 
 export const devBuyInfo = async (
@@ -217,61 +205,47 @@ export const devBuyInfo = async (
   const { song_id }: { song_id: string } = req.body;
   let dev;
   try {
-    const token = req.header("x-auth-token");
-    if (!token) throw new Error();
-    interface JwtPayload {
-      username: string;
-      kuota: number;
-    }
-    const userdata = jwt.verify(token!, process.env.JWT_KEY!) as JwtPayload;
-    dev = await Developer.findByPk(userdata.username);
-    if (!dev) {
-      throw new Error();
-    }
-  } catch (err) {
-    return res.status(401).send({
-      status: 401,
-      message: "Unauthorized",
-    });
-  }
-  try {
     await Joi.object({
       song_id: Joi.string().required().label("song_id"),
     }).validateAsync(req.body);
   } catch (error) {
     next(error);
   }
-  const old_quota: number = dev.kuota;
-  const Comments = await Comment.findAll({
-    attributes: ["comment", ["user_id", "commented_by"]],
-    where: { song_id: song_id },
-  });
-  const Reviews = await RatingReview.findAll({
-    attributes: ["rating", "review", ["user_id", "reviewed_by"]],
-    where: { song_id: song_id },
-  });
-  if (Comments.length == 0 && Reviews.length == 0) {
-    return res.status(404).send({
-      message: "Song ID has no related Comments or Review",
-      old_quota,
-      new_quota: old_quota,
+  try {
+    const token = req.header("x-auth-token");
+    if (!token) throw new Unauthorized();
+    const userdata = jwt.verify(token!, process.env.JWT_KEY!) as JwtPayloadIF;
+    dev = await Developer.findByPk(userdata.username);
+    if (!dev) {
+      throw new DeveloperNotFound();
+    }
+    const old_quota: number = dev!.kuota;
+    const Comments = await Comment.findAll({
+      attributes: ["comment", ["user_id", "commented_by"]],
+      where: { song_id: song_id },
     });
-  } else {
-    if (dev.kuota < 1) {
-      return res.status(400).send({
-        status: 400,
-        message: "Not enough quota, please Top Up first!",
+    const Reviews = await RatingReview.findAll({
+      attributes: ["rating", "review", ["user_id", "reviewed_by"]],
+      where: { song_id: song_id },
+    });
+    if (Comments.length == 0 && Reviews.length == 0) {
+      throw new RateRevComNotFOund("Song ID has no related Comments or Review")
+    } else {
+      if (dev.kuota < 1) {
+        throw new BadRequestMessage("Not enough quota, please Top Up first!")
+      }
+      dev.kuota -= 1;
+      await dev.save();
+      return res.status(200).send({
+        song_id,
+        old_quota,
+        new_quota: dev.kuota,
+        Comments: Comments,
+        Reviews: Reviews,
       });
     }
-    dev.kuota -= 1;
-    await dev.save();
-    return res.status(200).send({
-      song_id,
-      old_quota,
-      new_quota: dev.kuota,
-      Comments: Comments,
-      Reviews: Reviews,
-    });
+  } catch (err) {
+    next(err)
   }
 };
 
@@ -280,10 +254,7 @@ export const devBuyCsv = async (
   res: Response,
   next: NextFunction
 ) => {
-  interface JwtPayload {
-    username: string;
-    kuota: number;
-  }
+
   let dev;
   try {
     const token = req.header("x-auth-token");
@@ -292,7 +263,7 @@ export const devBuyCsv = async (
       error.name = "Unauthorized";
       throw error;
     }
-    const userdata = jwt.verify(token!, process.env.JWT_KEY!) as JwtPayload;
+    const userdata = jwt.verify(token!, process.env.JWT_KEY!) as JwtPayloadIF;
     dev = await Developer.findByPk(userdata.username);
     if (!dev) throw new Error();
 
@@ -357,7 +328,7 @@ export const usernameExist = async (username: string) => {
       username: username,
     },
   });
-  if (dev) throw new Error("Username sudah di gunakan");
+  if (dev) throw new BadRequestMessage("Username sudah digunakan!")
   return dev;
 };
 
@@ -367,7 +338,7 @@ export const emailExist = async (email: string) => {
       email: email,
     },
   });
-  if (dev) throw new Error("Email sudah di gunakan");
+  if (dev) throw new BadRequestMessage("Email sudah digunakan!");
   return dev;
 };
 // export const verifyPassword = async (pass: string, hashed: string) => {
