@@ -9,7 +9,10 @@ import {
   DeletedAt,
 } from "sequelize-typescript";
 
-@Table
+@Table({
+  tableName:"ratingreviews",
+  modelName:"RatingReview"
+})
 export default class RatingReview extends Model {
   @Column({ primaryKey: true, autoIncrement: true })
   id!: bigint;

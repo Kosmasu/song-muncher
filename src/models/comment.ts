@@ -9,7 +9,10 @@ import {
   DeletedAt,
 } from "sequelize-typescript";
 
-@Table
+@Table({
+  tableName:"comments",
+  modelName:"Comment"
+})
 export default class Comment extends Model {
   @Column({ primaryKey: true, autoIncrement: true })
   id!: bigint;

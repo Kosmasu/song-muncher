@@ -268,9 +268,7 @@ export const devBuyCsv = async (
     if (!dev) throw new Error();
 
     if (dev.kuota < 50) {
-      return res.status(400).send({
-        message: "Not enough quota, please Top Up first!",
-      });
+      throw new BadRequestMessage("Kuota tidak mencukupi mohon topup dahulu")
     }
   } catch (error) {
     next(error);

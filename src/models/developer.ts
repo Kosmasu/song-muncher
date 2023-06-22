@@ -8,7 +8,10 @@ import {
   DeletedAt,
 } from "sequelize-typescript";
 
-@Table
+@Table({
+  tableName:"developers",
+  modelName:"Developer"
+})
 export default class Developer extends Model {
   @Column({ primaryKey: true, autoIncrement: true })
   username!: string;
