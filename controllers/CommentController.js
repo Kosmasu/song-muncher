@@ -13,11 +13,6 @@ export const createComment = async (req, res, next) => {
             song_id: Joi.string().required().label("song id"),
             comment: Joi.string().required().label("comment"),
         }).validateAsync(req.body);
-    }
-    catch (error) {
-        return res.status(400).send({ message: String(error) });
-    }
-    try {
         const user_id = await getUserID(req.headers.authorization);
         await isSongExist(song_id, req.headers.authorization);
         const createComment = await Comment.create({
@@ -41,11 +36,6 @@ export const updateComment = async (req, res, next) => {
         await Joi.object({
             comment: Joi.string().required().label("comment"),
         }).validateAsync(req.body);
-    }
-    catch (error) {
-        return res.status(400).send({ message: String(error) });
-    }
-    try {
         const commentUpdate = await Comment.findByPk(comment_id);
         if (!commentUpdate) {
             return res.status(404).send({ message: "Comment is not found!" });
